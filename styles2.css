@@ -1,0 +1,350 @@
+:root {
+  /* Primitive Color Tokens */
+  --color-white: rgba(255, 255, 255, 1);
+  --color-black: rgba(0, 0, 0, 1);
+  --color-cream-50: rgba(252, 252, 249, 1);
+  --color-cream-100: rgba(255, 255, 253, 1);
+  --color-gray-200: rgba(245, 245, 245, 1);
+  --color-gray-300: rgba(167, 169, 169, 1);
+  --color-gray-400: rgba(119, 124, 124, 1);
+  --color-slate-500: rgba(98, 108, 113, 1);
+  --color-brown-600: rgba(94, 82, 64, 1);
+  --color-charcoal-700: rgba(31, 33, 33, 1);
+  --color-charcoal-800: rgba(38, 40, 40, 1);
+  --color-slate-900: rgba(19, 52, 59, 1);
+  --color-teal-300: rgba(50, 184, 198, 1);
+  --color-teal-400: rgba(10, 160, 178, 1);
+  --color-orange-500: rgba(255, 112, 67, 1);
+
+  /* Semantic Color Tokens (Light Scheme) */
+  --color-primary: var(--color-teal-400);
+  --color-primary-hover: var(--color-teal-300);
+  --color-accent: var(--color-orange-500);
+  --color-bg: var(--color-cream-100);
+  --color-bg-1: var(--color-white);
+  --color-bg-2: var(--color-gray-200);
+  --color-text: var(--color-charcoal-700);
+  --color-text-secondary: var(--color-slate-500);
+  --color-border: var(--color-gray-200);
+  --color-header-bg: var(--color-bg-1);
+
+  /* Layout and Spacing */
+  --space-4: 0.25rem;
+  --space-8: 0.5rem;
+  --space-16: 1rem;
+  --space-24: 1.5rem;
+  --space-32: 2rem;
+  --space-40: 2.5rem;
+  --space-48: 3rem;
+  --gap-24: 24px;
+
+  /* Typography */
+  --font-family-base: 'Inter', sans-serif;
+  --font-size-base: 1rem;
+  --font-weight-bold: 700;
+
+  /* Radii and Shadows */
+  --radius-base: 8px;
+  --shadow-base: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  /* Animation */
+  --duration-normal: 0.3s;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Scheme Overrides (Activated by [data-color-scheme="dark"]) */
+[data-color-scheme="dark"] {
+  --color-bg: var(--color-charcoal-700);
+  --color-bg-1: var(--color-charcoal-800);
+  --color-bg-2: var(--color-slate-900);
+  --color-text: var(--color-cream-50);
+  --color-text-secondary: var(--color-gray-300);
+  --color-border: var(--color-slate-500);
+  --color-header-bg: var(--color-bg-1);
+}
+
+/* Global Styles */
+body {
+  font-family: var(--font-family-base);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+  min-height: 100vh;
+  padding-top: 70px; /* Space for the fixed header */
+}
+
+/* Header Styles */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--color-header-bg);
+  box-shadow: var(--shadow-base);
+  z-index: 1030;
+  transition: background-color var(--duration-normal) var(--ease-standard);
+}
+
+.logo {
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+}
+
+.logo-text {
+  color: var(--color-text);
+  margin-left: var(--space-4);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.nav-menu .nav-link {
+  color: var(--color-text-secondary);
+  margin: 0 var(--space-8);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.nav-menu .nav-link:hover {
+  color: var(--color-primary);
+}
+
+/* Buttons */
+.primary-btn, .login-btn {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-base);
+  padding: 0.5rem 1rem;
+  transition: background-color var(--duration-normal) var(--ease-standard);
+}
+
+.primary-btn:hover, .login-btn:hover {
+  background-color: var(--color-primary-hover);
+  color: var(--color-white);
+}
+
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--color-text);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.theme-toggle-btn:hover {
+  color: var(--color-primary);
+}
+
+/* Main Content Components */
+.document-upload-section h2 {
+  color: var(--color-text);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.upload-box {
+  background-color: var(--color-bg-1);
+  border: 2px dashed var(--color-border);
+  cursor: pointer;
+  transition: background-color var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard);
+}
+
+.upload-box:hover {
+  background-color: var(--color-bg-2);
+  border-color: var(--color-primary);
+}
+
+.upload-box .fas {
+  color: var(--color-primary);
+}
+
+.analysis-results-section {
+  background-color: var(--color-bg-1);
+  border-radius: var(--radius-base);
+  padding: var(--space-24);
+  box-shadow: var(--shadow-base);
+  transition: background-color var(--duration-normal) var(--ease-standard);
+}
+
+.analysis-results-section h3 {
+  color: var(--color-primary);
+}
+
+/* Modal Styling */
+.modal-content {
+  background-color: var(--color-bg-1);
+  color: var(--color-text);
+  transition: background-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+}
+
+.modal-header {
+  border-bottom-color: var(--color-border);
+}
+
+.modal-title {
+  color: var(--color-text);
+}
+
+.form-label {
+  color: var(--color-text-secondary);
+}
+
+.form-control {
+  background-color: var(--color-bg-2);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  transition: background-color var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+}
+
+.form-control:focus {
+  background-color: var(--color-bg-1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.25rem rgba(10, 160, 178, 0.25);
+}
+
+/* Toast/Notification Styling */
+.toast-body {
+  font-weight: 500;
+}
+
+/* Specific analysis component styling (from original styleorg.css snippet) */
+.divisions-analysis .division-item h6 {
+  color: var(--color-text);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.divisions-analysis .division-item p {
+  color: var(--color-text-secondary);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+/* Custom analysis styling */
+.custom-analysis .analysis-category h5 {
+  color: var(--color-text);
+  margin-bottom: var(--space-8);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.custom-analysis .analysis-category p {
+  color: var(--color-text-secondary);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+/* Library analysis styling */
+.library-analysis .library-section h5 {
+  color: var(--color-text);
+  margin-bottom: var(--space-8);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.library-functions,
+.library-usecase {
+  color: var(--color-text-secondary);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+/* Metrics grid styling */
+.metrics-grid .metric-item h6 {
+  color: var(--color-text);
+  margin-bottom: var(--space-8);
+  transition: color var(--duration-normal) var(--ease-standard);
+}
+
+/* Insights styling */
+.insights-content .insight-item {
+  background: var(--color-bg-1);
+  border-radius: var(--radius-base);
+  padding: var(--space-16);
+  transition: all var(--duration-normal) var(--ease-standard);
+}
+/* --- SPLASH SCREEN STYLES START HERE (For index2.html) --- */
+
+/* CRITICAL: Force HTML/body to full screen and prevent main app scrolling on splash screen */
+/* This block applies the full-screen effect only when index2.html is loaded */
+html, body {
+    height: 100%;
+    overflow: hidden !important; 
+    margin: 0;
+    padding: 0;
+}
+
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 9999;
+    
+    /* 🛑 CRITICAL FIX: USING THE CORRECT IMAGE FILE NAME 🛑 */
+    background-image: url('iStock-1432744184.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-color: #000; /* Fallback color if image is not found */
+    
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+/* "ClauseGenie" Title Styling */
+#app-name {
+    font-size: clamp(3rem, 10vw, 7rem); 
+    color: white; 
+    font-weight: 700; 
+    letter-spacing: 0.1em;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.7); 
+    margin-bottom: 50px; 
+    font-family: 'Montserrat', sans-serif; 
+}
+
+/* Swipe Indicator Styling */
+#swipe-indicator {
+    position: absolute;
+    bottom: 10vh;
+    color: white;
+    opacity: 0.9;
+    animation: fadeAndMove 2s infinite ease-in-out; 
+    cursor: pointer;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    user-select: none;
+}
+
+#swipe-indicator p {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Arrow icon */
+.arrow {
+    width: 20px;
+    height: 20px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(-135deg); 
+    margin-top: 5px;
+}
+
+/* Keyframe Animation */
+@keyframes fadeAndMove {
+    0%, 100% { 
+        transform: translateY(0); 
+        opacity: 0.8; 
+    }
+    50% { 
+        transform: translateY(-20px); 
+        opacity: 1; 
+    }
+}
+
+/* Exit Animation */
+.slide-up-exit {
+    transform: translateY(-100vh); 
+}
