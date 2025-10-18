@@ -15,7 +15,7 @@
             <div class="d-flex align-items-center justify-content-between py-3">
                 <a href="index.html" class="logo" style="text-decoration: none;">
                     <i class="fas fa-balance-scale me-2"></i>
-                    <span class="logo-text">CLAUSEWISE</span>
+                    <span class="logo-text">ClauseGenie</span>
                 </a>
                 <div class="d-flex align-items-center gap-24">
                     <nav class="nav-menu">
@@ -78,34 +78,11 @@
                         <div class="output-format-selection mt-4" id="formatSelection" style="display: none;">
                             <h5>Select Output Format:</h5>
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="format-option" data-format="clauses">
-                                        <i class="fas fa-list-alt"></i>
-                                        <h6>Clauses</h6>
-                                        <p>Organized by contract clauses</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="format-option" data-format="points">
-                                        <i class="fas fa-list-ul"></i>
-                                        <h6>Points</h6>
-                                        <p>Bullet-point summary</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="format-option" data-format="divisions">
-                                        <i class="fas fa-sitemap"></i>
-                                        <h6>Divisions</h6>
-                                        <p>Section-based organization</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
                                     <div class="format-option" data-format="custom">
                                         <i class="fas fa-cogs"></i>
-                                        <h6>Custom</h6>
+                                        <h6>Output Format</h6>
                                         <p>User-defined format</p>
                                     </div>
-                                </div>
                             </div>
 
                             <div class="text-center mt-4">
@@ -373,17 +350,19 @@
                         <div class="sample-doc" data-sample="contract">
                             <i class="fas fa-file-pdf text-danger"></i>
                             <div class="sample-info">
-                                <h6>Contract Agreement Template</h6>
-                                <p>2.4 MB PDF • 10 Legal Clauses</p>
-                                <small>Contains standard contract provisions including terms, payments, and liability clauses</small>
+                                <h6>Church Loans Document</h6>
+                                <button class="btn btn--primary btn-sm mt-2"
+                                onclick="loadSampleDocument('Church_loans.pdf')">
+                            </button>
                             </div>
                         </div>
                         <div class="sample-doc" data-sample="brief">
                             <i class="fas fa-file-word text-primary"></i>
                             <div class="sample-info">
-                                <h6>Legal Brief Document</h6>
-                                <p>1.8 MB DOCX • 5 Sections</p>
-                                <small>Structured legal brief with arguments, case law, and conclusions</small>
+                                <h6>Stock Purchase Document</h6>
+                                <button class="btn btn--primary btn-sm mt-2"
+                                onclick="loadSampleDocument('Stock_purchase.pdf')">
+                            </button>
                             </div>
                         </div>
                     </div>
