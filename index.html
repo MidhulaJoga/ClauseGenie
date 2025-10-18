@@ -120,108 +120,20 @@
             </section>
 
             <!-- Processing Section -->
-            <section class="processing-section" id="processingSection" style="display: none;">
-                <div class="card processing-card">
-                    <div class="card__body">
-                        <h3 class="card-title mb-4">
-                            <i class="fas fa-cog fa-spin me-2"></i>
-                            Processing Documents
-                        </h3>
-                        
-                        <div class="processing-steps">
-                            <div class="step-item" id="step-upload">
-                                <div class="step-icon">
-                                    <i class="fas fa-upload"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>Document Upload</h6>
-                                    <p>Files received and validated</p>
-                                </div>
-                                <div class="step-status">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                            </div>
-
-                            <div class="step-item" id="step-extraction">
-                                <div class="step-icon">
-                                    <i class="fas fa-file-text"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>Text Extraction</h6>
-                                    <p>Using PyPDF2/PyMuPDF & python-docx</p>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar" id="extractionProgress" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="step-status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-
-                            <div class="step-item" id="step-nltk">
-                                <div class="step-icon">
-                                    <i class="fas fa-language"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>NLP Processing</h6>
-                                    <p>NLTK tokenization and analysis</p>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar" id="nltkProgress" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="step-status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-
-                            <div class="step-item" id="step-huggingface">
-                                <div class="step-icon">
-                                    <i class="fas fa-robot"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>AI Analysis</h6>
-                                    <p>HuggingFace Transformers processing</p>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar" id="huggingfaceProgress" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="step-status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-
-                            <div class="step-item" id="step-tensorflow">
-                                <div class="step-icon">
-                                    <i class="fas fa-brain"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>ML Classification</h6>
-                                    <p>TensorFlow deep learning analysis</p>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar" id="tensorflowProgress" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="step-status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-
-                            <div class="step-item" id="step-completion">
-                                <div class="step-icon">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="step-content">
-                                    <h6>Analysis Complete</h6>
-                                    <p>Results formatted and ready</p>
-                                </div>
-                                <div class="step-status">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+<section class="processing-section" id="processingSection" style="display: none;">
+    <div class="card processing-card text-center py-5">
+        <div class="card__body">
+            <div class="spinner-border text-primary mb-4" style="width: 4rem; height: 4rem;" role="status">
+                <span class="visually-hidden">Processing...</span>
+            </div>
+            <h3 class="card-title mb-3">
+                <i class="fas fa-cog fa-spin me-2"></i>
+                Processing...
+            </h3>
+            <p class="lead text-muted">Please wait while we analyze your document using AI.</p>
+        </div>
+    </div>
+</section>
 
             <!-- Results Section -->
             <section class="results-section" id="resultsSection" style="display: none;">
