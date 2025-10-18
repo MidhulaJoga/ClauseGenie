@@ -1,0 +1,1079 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClauseGenie: AI Legal Document Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+    /* --- NEW BACKGROUND IMAGE AND OVERLAY STYLES --- */
+
+/* Apply the image to the main body element */
+body {
+    /* Set the background image using the correct file name */
+    background-image: url('v602-nunoon-45-rippednotes.jpg'); 
+    background-size: cover; /* Ensures the image covers the entire viewport */
+    background-attachment: fixed; /* Keeps the background static while content scrolls */
+    background-position: center center;
+    position: relative; /* Needed for the ::before pseudo-element */
+    z-index: 1; /* Ensure body content is layered correctly */
+}
+
+/* Create a semi-transparent overlay to reduce image intensity */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Adjust the last value (0.7) to control intensity:
+       - 0.0: Fully transparent (original image intensity)
+       - 0.7: Good for lightening a busy background (dimming the image)
+       - 1.0: Solid black (image fully hidden)
+    */
+    background-color: rgba(255, 255, 255, 0.6); /* White overlay for a faded/less intense look */
+    z-index: -1; /* Place the overlay behind the content (z-index: 1 on body) */
+}
+
+/* Ensure main content containers (header, main, modals) remain opaque */
+header, main > div, #chatModal, #helpModalContent {
+    background-color: var(--color-bg-primary, rgba(255, 255, 255, 0.95)); /* Use a slightly opaque white/cream for containers */
+    z-index: 10; /* Keep them above the background */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Ensure the background of the main analysis containers is not fully transparent */
+/* Assuming the main content is within a container like one of these */
+.bg-white, .bg-gray-100, .shadow-lg {
+    background-color: var(--color-bg-card, rgba(255, 255, 255, 0.95)) !important; 
+}
+    body {
+        font-family: 'Inter', sans-serif;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    /* Custom scrollbar for analysis results */
+    #analysisResultsContainer::-webkit-scrollbar {
+        width: 8px;
+    }
+    #analysisResultsContainer::-webkit-scrollbar-thumb {
+        background-color: #9ca3af; /* gray-400 */
+        border-radius: 4px;
+    }
+    [data-theme="dark"] #analysisResultsContainer::-webkit-scrollbar-thumb {
+        background-color: #4b5563; /* gray-600 */
+    }
+    .blur-target {
+    /* Base transition for smooth blurring */
+    transition: filter 0.5s ease-out; 
+}
+
+/* Class applied by JavaScript when the chat is open */
+.chat-open .blur-target {
+    /* Blur the entire main dashboard behind the chat modal */
+    filter: blur(4px);
+    pointer-events: none; /* Prevents interaction with blurred content */
+}
+#openChatBtn {
+    /* Change the color code here for the normal state */
+    background-color: var(--color-teal-300, #32b8c6) !important; 
+    /* ... other styles ... */
+}
+
+#openChatBtn:hover {
+    /* Change the color code here for the hover state */
+    background-color: var(--color-teal-400, #2c9fa8) !important; 
+    /* ... other styles ... */
+}
+    
+
+</style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen" data-theme="light">
+    <header class="shadow-md bg-white sticky top-0 z-10 transition-colors duration-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-4">
+                <a href="#" class="flex items-center text-2xl font-bold text-indigo-600 space-x-2">
+                    <i class="fas fa-balance-scale"></i>
+                    <span class="logo-text">ClauseGenie</span>
+                </a>
+                <div class="flex items-center space-x-4">
+                    
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200" title="Toggle Theme">
+                        <i id="themeIcon" class="fas fa-moon text-gray-600"></i>
+                    </button>
+
+                    <button class="text-gray-600 hover:text-indigo-600 transition-colors duration-200 text-lg" onclick="document.getElementById('helpModal').classList.remove('hidden')">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="mainContent" class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 blur-target">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div id="controlPanel" class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-full transition-colors duration-300">
+                <h2 class="text-2xl font-extrabold text-indigo-700 mb-6">Document Analysis</h2>
+                
+                <section id="step-upload" class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center text-gray-700">
+                        <span class="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm mr-2">1</span>
+                        Upload Document
+                    </h3>
+                    <input type="file" id="fileInput" accept=".txt,.md" class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-indigo-50 file:text-indigo-700
+                        hover:file:bg-indigo-100"
+                        onchange="document.getElementById('analyzeBtn').disabled = !this.files.length"
+                    >
+                    <p class="text-xs text-gray-500 mt-2">Only .txt or .md files are supported for text-based analysis.</p>
+                    
+                    <button id="loadSampleBtn" class="w-full mt-4 bg-gray-600 text-white py-2 rounded-xl font-bold hover:bg-gray-700 transition-colors duration-200 shadow-md">
+                        <i class="fas fa-file-alt mr-2"></i> Load Sample Loan Agreement
+                    </button>
+                    </section>
+                
+            
+                <section class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center text-gray-700">
+                        <span class="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm mr-2">2</span>
+                        Output Format
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" class="btn-format active" data-format="Summary">Summary & Simplification</button>
+                        <button type="button" class="btn-format" data-format="NER">Named Entity Recognition</button>
+                        <button type="button" class="btn-format" data-format="Table">Risk & Clause Table</button>
+                    </div>
+                </section>
+                
+                <div class="space-y-4">
+                    <button id="analyzeBtn" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors duration-200 shadow-md" disabled>
+                        <i class="fas fa-magic mr-2"></i> Analyze Document
+                    </button>
+                    <button id="resetBtn" class="w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-bold text-lg hover:bg-gray-300 transition-colors duration-200" onclick="document.getElementById('analyzer').resetAnalysis()">
+                        <i class="fas fa-redo mr-2"></i> Reset
+                    </button>
+                    <button id="downloadBtn" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-emerald-700 disabled:bg-emerald-300 transition-colors duration-200 shadow-md hidden" disabled>
+                        <i class="fas fa-download mr-2"></i> Download Results
+                    </button>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg transition-colors duration-300">
+                <h2 class="text-2xl font-extrabold text-indigo-700 mb-6">Analysis Results</h2>
+
+                <div id="statusSection" class="mb-4">
+                    <div id="progressBar" class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progressFill" class="h-2 bg-indigo-500 transition-all duration-500 ease-out" style="width: 0%"></div>
+                    </div>
+                    <p id="statusText" class="text-sm text-gray-600 mt-2">Ready to analyze. Upload a document to begin.</p>
+                </div>
+                
+                <div id="analysisResultsContainer" class="p-4 border border-gray-200 rounded-xl min-h-[500px] max-h-[70vh] overflow-y-auto bg-gray-50 transition-colors duration-300">
+                    <div id="initialMessage" class="text-center p-20 text-gray-400">
+                        <i class="fas fa-file-contract text-6xl mb-4"></i>
+                        <p class="text-lg font-medium">Your analysis results will appear here after processing.</p>
+                        <p class="text-sm mt-4">Try uploading a sample contract or policy document (TXT/MD format).</p>
+                    </div>
+                    <div id="resultsContent" class="prose max-w-none hidden">
+                        </div>
+                </div>
+
+                <div id="errorBox" class="hidden mt-4 p-4 text-red-700 bg-red-100 border border-red-300 rounded-lg">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span id="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+        <div id="chatModal" class="fixed bottom-0 right-0 w-full max-w-sm z-40 p-4 transition-transform duration-500 transform translate-x-full">
+        <div class="bg-white rounded-xl shadow-2xl border border-indigo-100 overflow-hidden">
+            <div class="flex justify-between items-center p-4 bg-indigo-600 text-white">
+                <h3 class="text-lg font-bold flex items-center">
+                    <i class="fas fa-robot mr-2"></i> Document Q&A
+                </h3>
+                <button id="closeChatBtn" class="p-1 rounded-full hover:bg-indigo-700 transition-colors duration-200" title="Close Chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="chatHistory" class="p-4 bg-gray-50 h-80 overflow-y-auto space-y-4">
+                <div id="chatInitialMessage" class="text-center p-10 text-gray-400">
+                    <i class="fas fa-comment-dots text-4xl mb-2"></i>
+                    <p class="text-sm font-medium">Ask any question about the analyzed document.</p>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex space-x-3">
+                    <input type="text" id="chatInput" placeholder="Ask a question..." 
+                           class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+                           disabled>
+                    <button id="sendChatBtn" class="bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors duration-200" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <p id="chatStatus" class="text-xs text-gray-500 mt-2 hidden">AI is typing...</p>
+            </div>
+        </div>
+    </div>
+
+    <button id="openChatBtn" class="fixed bottom-4 right-4 z-50 p-4 rounded-full bg-emerald-500 text-white text-xl shadow-lg hover:bg-emerald-600 transition-all duration-300 scale-0 opacity-0" title="Open Chat">
+    <i class="fas fa-comments"></i>
+</button>
+    </main>
+    
+    <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto transition-opacity duration-300" onclick="if(event.target.id === 'helpModal') document.getElementById('helpModal').classList.add('hidden')">
+        <div class="relative w-full max-w-lg mx-auto mt-10 p-6 bg-white rounded-xl shadow-2xl transition-transform duration-300 transform scale-95 opacity-0" id="helpModalContent">
+            <h3 class="text-2xl font-bold text-indigo-700 mb-4">How ClauseGenie Works</h3>
+            <p class="text-gray-700 mb-4">ClauseGenie is an AI-powered tool designed to analyze and simplify legal documents. It performs several key operations using a powerful Large Language Model (LLM):</p>
+            <ul class="list-disc list-inside space-y-2 text-gray-600">
+                <li><strong>Summarization & Simplification:</strong> Provides a concise summary written at an accessible reading level (like 6th grade) to demystify complex legal terms.</li>
+                <li><strong>Named Entity Recognition (NER):</strong> Identifies and extracts key entities like names, dates, organizations, and legal concepts.</li>
+                <li><strong>Table Format:</strong> Extracts critical clauses, assigns a hypothetical risk level, and presents the simplified findings in a clear, easy-to-read table.</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4">This application uses the Gemini API for advanced NLP tasks and Firebase Firestore for secure user-specific data storage (e.g., analysis history).</p>
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" onclick="document.getElementById('helpModal').classList.add('hidden')">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+    </div>
+    <script type="module">
+    // ---------- FIREBASE IMPORTS ----------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, collection, query, limit, getDocs, orderBy, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // ---------- GLOBAL VARIABLES FOR FIREBASE ----------
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    let db, auth;
+    let currentUserId = null;
+    let isAuthReady = false;
+
+    // START NEW CODE: Sample Document Content
+    const SAMPLE_DOC_CONTENT = `LOAN AGREEMENT
+
+BY AND BETWEEN
+CHURCH LOANS & INVESTMENTS TRUST ("TRUST")
+AND
+AMARILLO NATIONAL BANK ("BANK")
+
+DATED
+DECEMBER 31, 2002
+
+SECTION 1. LOANS
+1.1 Bank's Commitment. Bank agrees to make loans to the Trust, at any time or from time to time during the term hereof, in an aggregate principal amount not exceeding at any one time outstanding the sum of $20,000,000.
+
+1.4 Interest. The Notes shall bear interest at a rate equal to 1% per annum less than J.P. Morgan Chase & Co., Inc.'s prime lending rate, adjusted daily.
+
+SECTION 5. COLLATERAL
+5.1 Collateral Requirement. The Trust shall deliver and maintain with the Bank, at all times, Qualified Collateral having a Pledge Value equal to at least 110% of the aggregate outstanding principal balance of the Notes.
+
+SECTION 6. AFFIRMATIVE COVENANTS
+6.12 Other Indebtedness. The Trust shall not, directly or indirectly, be liable for or assume or guaranty any indebtedness of any person, firm or corporation, other than in connection with the ordinary course of its business of making loans to churches, without the prior written consent of Bank.
+
+SECTION 8. EVENTS OF DEFAULT
+8.1 Events of Default. The following shall constitute an Event of Default hereunder: (c) If a final money judgment in excess of $25,000 shall be rendered against the Trust and such judgment shall not be discharged or stayed within sixty (60) days.
+`;
+    // END NEW CODE
+
+    // ---------- AI Legal Document Analyzer CLASS (Refactored from app.js) ----------
+    class LegalDocumentAnalyzer {
+        constructor() {
+            this.uploadedFiles = [];
+            this.selectedFormat = 'Summary'; // Default format
+            this.analysisResults = null;
+            this.currentTheme = 'light';
+            
+            // 🚀 GEMINI API KEY INSERTED HERE 🚀
+            const apiKey = "AIzaSyDdUieZ7sx9bWD_v6iUd71HYoTQ49dYYuI"; 
+            this.apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`; 
+
+            this.init();
+        }
+
+        async init() {
+            this.initializeTheme();
+            await this.initFirebase(); // Initialize Firebase first
+        }
+        
+        // ---------- FIREBASE & AUTH SETUP ----------
+        async initFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Set Firestore logging level (optional but helpful)
+                setLogLevel('debug');
+
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+                if (token) {
+                    await signInWithCustomToken(auth, token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                    } else {
+                        currentUserId = 'anonymous-' + crypto.randomUUID();
+                    }
+                    isAuthReady = true;
+                    console.log("Firebase Auth State Ready. User ID:", currentUserId);
+                    this.setupEventListeners(); // Setup listeners AFTER auth is ready
+                    this.updateLoginStatus(user);
+                    this.startHistoryListener();
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                currentUserId = 'anonymous-fallback-' + crypto.randomUUID();
+                isAuthReady = true;
+                this.setupEventListeners();
+                this.updateLoginStatus(null);
+            }
+        }
+        
+        updateLoginStatus(user) {
+            const statusElement = document.getElementById('userStatus');
+            if (user) {
+                statusElement.innerHTML = `<i class="fas fa-user-check text-green-500 mr-1"></i> Logged in as: <code class="text-xs bg-gray-200 p-1 rounded">${user.uid}</code>`;
+            } else {
+                statusElement.innerHTML = `<i class="fas fa-user text-yellow-500 mr-1"></i> Anonymous User ID: <code class="text-xs bg-gray-200 p-1 rounded">${currentUserId}</code>`;
+            }
+        }
+
+        getHistoryCollectionPath() {
+            // Private data storage path
+            return `artifacts/${appId}/users/${currentUserId}/analysis_history`;
+        }
+
+        startHistoryListener() {
+            if (!isAuthReady || !db || !currentUserId) return;
+            // This is a simple example. Since history isn't rendered, we just log it.
+            const historyRef = collection(db, this.getHistoryCollectionPath());
+            const q = query(historyRef, orderBy("timestamp", "desc"), limit(5));
+
+            onSnapshot(q, (snapshot) => {
+                const history = [];
+                snapshot.forEach((doc) => {
+                    history.push(doc.data());
+                });
+                console.log("Analysis History Updated (Last 5):", history);
+                // If we had a UI component, we would update it here.
+            });
+        }
+        
+        // ---------- EVENT LISTENERS & UI SETUP (FIXED) ----------
+
+        setupEventListeners() {
+            // Check if listeners are already set up (to prevent double-binding from onAuthStateChanged)
+            if (document.getElementById('analyzeBtn').hasAttribute('data-listeners-set')) return;
+            document.getElementById('analyzeBtn').setAttribute('data-listeners-set', 'true');
+
+            document.getElementById('analyzeBtn').addEventListener('click', () => this.startAnalysis());
+            document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileChange(e));
+            document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
+            document.getElementById('downloadBtn').addEventListener('click', () => this.downloadResults());
+            document.getElementById('loadSampleBtn').addEventListener('click', () => this.loadSampleDocument());
+
+            document.querySelectorAll('.btn-format').forEach(btn => {
+                btn.addEventListener('click', (e) => this.selectFormat(e.target));
+            });
+            // Initial setting of the active format class
+            document.querySelector('.btn-format[data-format="Summary"]').classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+            
+            // === NEW CHAT MODAL LISTENERS ===
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendChatBtn');
+            
+            // Buttons to open/close the modal
+            document.getElementById('openChatBtn').addEventListener('click', () => this.toggleChatModal(true));
+            document.getElementById('closeChatBtn').addEventListener('click', () => this.toggleChatModal(false));
+
+            const handleSend = () => {
+                const question = chatInput.value.trim();
+                if (question) {
+                    this.renderChatMessage(question, 'user');
+                    // Call the core AI function
+                    this.answerQuestion(question); 
+                    chatInput.value = ''; // Clear input field
+                }
+            };
+
+            sendBtn.addEventListener('click', handleSend);
+            
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !sendBtn.disabled) {
+                    handleSend();
+                }
+            });
+            // ===========================
+        }
+
+        selectFormat(button) {
+            this.selectedFormat = button.getAttribute('data-format');
+            document.querySelectorAll('.btn-format').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+                btn.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+            });
+            button.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+            button.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+            
+            if (this.analysisResults) {
+                this.renderResults(this.analysisResults);
+            }
+        }
+
+        handleFileChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.uploadedFiles = [{ name: file.name, content: e.target.result }];
+                    this.analysisResults = null;
+                    document.getElementById('analyzeBtn').disabled = false;
+                    document.getElementById('initialMessage').classList.remove('hidden');
+                    document.getElementById('resultsContent').classList.add('hidden');
+                    document.getElementById('downloadBtn').classList.add('hidden');
+                    
+                    // FIX: Enable chat input/button when file is loaded
+                    document.getElementById('chatInput').disabled = false;
+                    document.getElementById('sendChatBtn').disabled = false;
+                    
+                    this.updateProgress(0, `Ready to analyze document: ${file.name}`);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // ---------- CORE ANALYSIS LOGIC (LLM API CALL) ----------
+        async startAnalysis() {
+            if (this.uploadedFiles.length === 0) {
+                this.showNotification('Please upload a document first.', 'warning');
+                return;
+            }
+
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('errorBox').classList.add('hidden');
+            
+            const docContent = this.uploadedFiles[0].content;
+            const docName = this.uploadedFiles[0].name;
+            const docContext = `The user has provided a document named "${docName}" for advanced legal analysis. The document content is below:\n\n---\n\n${docContent}`;
+
+            try {
+                // Check for empty API key - Now redundant as key is hardcoded, but good safety check
+                const currentApiKey = this.apiURL.split('=')[1]; 
+                if (!currentApiKey || currentApiKey === "") {
+                     throw new Error("API Key is missing or invalid. Please ensure your Gemini API Key is correctly inserted in the 'LegalDocumentAnalyzer' class.");
+                }
+
+
+                // 1. Progress Step: LLM Call Preparation
+                this.updateProgress(20, 'Sending document for AI analysis...');
+                
+                // 2. LLM Call
+                const structuredAnalysis = await this.analyzeDocument(docContext);
+
+                if (!structuredAnalysis) {
+                    throw new Error("Analysis failed: LLM returned no structured data.");
+                }
+
+                // 3. Progress Step: Processing Results
+                this.updateProgress(80, 'Processing AI results and formatting output...');
+
+                this.analysisResults = structuredAnalysis;
+
+                // 4. Save to Firestore (Demonstration of Data Persistence)
+                this.saveAnalysisToFirestore(docName, structuredAnalysis);
+                
+                // 5. Completion
+                this.renderResults(structuredAnalysis);
+                this.updateProgress(100, 'Analysis Complete!');
+                document.getElementById('analyzeBtn').disabled = false;
+                document.getElementById('downloadBtn').classList.remove('hidden');
+                document.getElementById('downloadBtn').disabled = false;
+                this.showNotification('Analysis completed successfully!', 'success');
+                
+                // NEW: Show the floating chat button
+                this.showChatToggleButton(true);
+
+            } catch (error) {
+                console.error("Analysis Error:", error);
+                document.getElementById('errorMessage').textContent = `Analysis failed: ${error.message}`;
+                document.getElementById('errorBox').classList.remove('hidden');
+                this.updateProgress(0, 'Error during analysis. Please check console for details.');
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+        
+        // This is the core function that calls the Gemini API and enforces structured JSON output.
+        async analyzeDocument(docContext) {
+            const systemPrompt = `You are ClauseGenie, a highly accurate legal document analysis AI. Your task is to perform three steps:
+1. Summarize the provided document into a single, comprehensive paragraph, ensuring you simplify all complex legal terms to be easily understandable (e.g., 6th-grade reading level).
+2. Deconstruct the document into its key clauses or sections, extract core content, assess a hypothetical risk level (Low, Medium, or High) for a non-expert, and identify all Named Entities (PERSON, ORGANIZATION, DATE, TERM, JURISDICTION, RISK).
+3. Return the entire response as a single, valid JSON object strictly adhering to the provided schema. Do not include any text outside the JSON block.`;
+
+            const userQuery = `Analyze the document based on the system instructions. Focus on the core agreements, parties, dates, and potential risks. \n\nDOCUMENT CONTEXT:\n${docContext}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                // Enforce JSON output structure
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            summary: {
+                                type: "STRING",
+                                description: "The simplified, single-paragraph summary of the entire document."
+                            },
+                            simplification_level: {
+                                type: "STRING",
+                                description: "The reading level used for simplification (e.g., 'Grade 6')."
+                            },
+                            analysis_results: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        clause_title: {
+                                            type: "STRING",
+                                            description: "The title of the clause or section."
+                                        },
+                                        simplified_content: {
+                                            type: "STRING",
+                                            description: "A short, simplified explanation of the clause."
+                                        },
+                                        risk_level: {
+                                            type: "STRING",
+                                            enum: ["Low", "Medium", "High"],
+                                            description: "Hypothetical risk level for a non-expert."
+                                        },
+                                        entities: {
+                                            type: "ARRAY",
+                                            items: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    type: { type: "STRING" },
+                                                    name: { type: "STRING" }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    required: ["clause_title", "simplified_content", "risk_level", "entities"]
+                                }
+                            }
+                        },
+                        required: ["summary", "simplification_level", "analysis_results"]
+                    }
+                }
+            };
+
+            const response = await fetch(this.apiURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                // If 403, assume missing/invalid API key
+                if (response.status === 403) {
+                     throw new Error(`LLM API request failed with status: ${response.status}. The API Key is likely invalid or has usage restrictions. Please verify your key and usage limits.`);
+                }
+                throw new Error(`LLM API request failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!jsonText) {
+                throw new Error("LLM response was empty or malformed.");
+            }
+
+            try {
+                const parsedJson = JSON.parse(jsonText);
+                return parsedJson;
+            } catch (e) {
+                console.error("Failed to parse JSON from LLM:", jsonText);
+                throw new Error("LLM returned non-parsable JSON structure.");
+            }
+        }
+
+        // ---------- FIRESTORE PERSISTENCE ----------
+        async saveAnalysisToFirestore(docName, results) {
+            if (!isAuthReady || !db || !currentUserId) return;
+            const docId = Date.now().toString();
+            const docRef = doc(db, this.getHistoryCollectionPath(), docId);
+            
+            try {
+                await setDoc(docRef, {
+                    documentName: docName,
+                    userId: currentUserId,
+                    timestamp: docId,
+                    summary: results.summary,
+                    // Note: Storing only a small part of the results to respect Firestore limits
+                    clauseCount: results.analysis_results.length,
+                    firstClauseTitle: results.analysis_results[0]?.clause_title || 'N/A'
+                });
+                console.log("Analysis history saved to Firestore with ID:", docId);
+            } catch (e) {
+                console.error("Error saving to Firestore:", e);
+                this.showNotification(`Could not save history to Firestore. Check console.`, 'error');
+            }
+        }
+        
+        // ---------- CHATBOT Q&A LOGIC (MISSING: INSERTED HERE) ----------
+        
+        // Utility to convert basic markdown (like bold) to HTML for chat display
+        markdownToHtml(markdown) {
+            // Simple markdown conversion: **bold** to <strong>bold</strong>, \n\n to <p>
+            let html = markdown.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\n\n/g, '<p>');
+            return html;
+        }
+
+        // Handles displaying messages in the chat modal
+        renderChatMessage(message, sender) {
+            const chatHistory = document.getElementById('chatHistory');
+            const chatInitialMessage = document.getElementById('chatInitialMessage');
+            if (chatInitialMessage) {
+                chatInitialMessage.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            const isUser = sender === 'user';
+            
+            messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            
+            const contentSpan = document.createElement('div');
+            contentSpan.className = `max-w-xs sm:max-w-md px-4 py-3 rounded-xl shadow-md text-sm leading-relaxed ${
+                isUser 
+                    ? 'bg-indigo-500 text-white rounded-br-none' 
+                    : 'bg-gray-200 text-gray-800 rounded-tl-none'
+            }`;
+            contentSpan.innerHTML = isUser ? message : this.markdownToHtml(message);
+
+            messageDiv.appendChild(contentSpan);
+            chatHistory.appendChild(messageDiv);
+            
+            // Auto-scroll to the bottom
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Core function to send the question and document to the AI
+        async answerQuestion(question) {
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendChatBtn');
+            const chatStatus = document.getElementById('chatStatus');
+
+            if (!this.analysisResults || this.uploadedFiles.length === 0) {
+                this.renderChatMessage("Please complete the document analysis first before asking questions.", 'ai');
+                return;
+            }
+
+            const docContent = this.uploadedFiles[0].content;
+            
+            // Disable input while AI is thinking
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+            chatStatus.classList.remove('hidden');
+
+            try {
+                const systemPrompt = `You are a legal document question-answering AI. Your goal is to answer the user's question accurately using ONLY the provided document content. 
+If the information is not explicitly found in the document, you MUST respond with "The document does not contain information regarding this topic." 
+Do not use outside knowledge. Do not summarize the entire document. Answer clearly and concisely.`;
+
+                const userQuery = `DOCUMENT CONTENT:\n---\n${docContent}\n---\nUSER QUESTION: ${question}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                         temperature: 0.1 // Low temperature for factual, grounded answers
+                    }
+                };
+
+                const response = await fetch(this.apiURL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`LLM API request failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const aiResponseText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that question right now.";
+                
+                this.renderChatMessage(aiResponseText, 'ai');
+
+            } catch (error) {
+                console.error("Chat Q&A Error:", error);
+                this.renderChatMessage(`An error occurred while fetching the answer: ${error.message}`, 'ai');
+            } finally {
+                // Re-enable input
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatStatus.classList.add('hidden');
+                chatInput.focus();
+            }
+        }
+
+        // ---------- RESULT RENDERING ----------
+        renderResults(results) {
+            const contentDiv = document.getElementById('resultsContent');
+            contentDiv.innerHTML = '';
+            document.getElementById('initialMessage').classList.add('hidden');
+            contentDiv.classList.remove('hidden');
+
+            const clauses = results.analysis_results || [];
+
+            // 1. Always show the Summary at the top
+            let html = `
+                <div class="mb-6 pb-4 border-b border-gray-200">
+                    <h3 class="text-xl font-bold text-indigo-700 mb-2">Simplified Summary (${results.simplification_level})</h3>
+                    <p class="text-gray-700 leading-relaxed">${results.summary}</p>
+                </div>`;
+
+            // 2. Render content based on the selected format
+            switch (this.selectedFormat) {
+                case 'NER':
+                    html += this.renderNER(clauses);
+                    break;
+                case 'Table':
+                    html += this.renderTable(clauses);
+                    break;
+                case 'Summary':
+                default:
+                    html += this.renderSummary(clauses);
+            }
+            
+            contentDiv.innerHTML += html;
+        }
+
+        renderSummary(clauses) {
+            let html = `
+                <h3 class="text-xl font-bold text-indigo-700 mb-4">Detailed Simplification</h3>
+                <ol class="list-decimal pl-5 space-y-4 text-gray-700">`;
+            clauses.forEach(c => {
+                const riskColor = c.risk_level === 'High' ? 'text-red-600' : c.risk_level === 'Medium' ? 'text-yellow-600' : 'text-emerald-600';
+                html += `
+                    <li class="font-semibold text-gray-900 mt-4">
+                        ${c.clause_title}
+                        <div class="font-normal text-gray-700 mt-1">
+                            ${c.simplified_content}<br>
+                            <em class="text-sm">Hypothetical Risk: <span class="${riskColor} font-bold">${c.risk_level}</span></em>
+                        </div>
+                    </li>`;
+            });
+            html += '</ol>';
+            return html;
+        }
+
+        renderNER(clauses) {
+            let html = `
+                <h3 class="text-xl font-bold text-indigo-700 mb-4">Named Entity Recognition (NER)</h3>
+                <div class="space-y-4">`;
+            clauses.forEach(c => {
+                const entities = c.entities.map(e => `<span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800 mr-2 mb-1">${e.name} <span class="text-gray-500">(${e.type})</span></span>`).join('');
+                html += `
+                    <div class="p-3 border rounded-lg bg-white shadow-sm">
+                        <p class="font-semibold text-gray-900 mb-1">${c.clause_title}</p>
+                        <p class="text-sm text-gray-600">${c.simplified_content}</p>
+                        <div class="mt-2 pt-2 border-t border-gray-100">
+                            ${entities || '<p class="text-xs text-gray-400">No specific entities found.</p>'}
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        renderTable(clauses) {
+            let html = `
+                <h3 class="text-xl font-bold text-indigo-700 mb-4">Risk & Clause Table Format</h3>
+                <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clause Title</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Simplified Content</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">`;
+            
+            clauses.forEach(c => {
+                const riskColor = c.risk_level === 'High' ? 'bg-red-100 text-red-800' : c.risk_level === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-emerald-100 text-emerald-800';
+                html += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${c.clause_title}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${c.simplified_content}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${riskColor}">
+                                ${c.risk_level}
+                            </span>
+                        </td>
+                    </tr>`;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                </div>`;
+            return html;
+        }
+        
+        // ---------- UTILITIES ----------
+        updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = `${percent}%`;
+            document.getElementById('statusText').textContent = text;
+        }
+
+        showNotification(msg, type = 'info') {
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'warning' ? 'bg-yellow-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            const alert = document.createElement('div');
+            alert.className = `fixed top-4 right-4 z-50 p-4 rounded-lg text-white font-semibold shadow-xl transition-transform transform translate-x-full opacity-0 ${bgColor}`;
+            alert.innerHTML = msg;
+            
+            document.body.appendChild(alert);
+            
+            // Animate in
+            setTimeout(() => {
+                alert.classList.remove('translate-x-full', 'opacity-0');
+                alert.classList.add('translate-x-0', 'opacity-100');
+            }, 10);
+
+            // Animate out and remove
+            setTimeout(() => {
+                alert.classList.remove('translate-x-0', 'opacity-100');
+                alert.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => alert.remove(), 500);
+            }, 4000);
+        }
+        
+        // START NEW CODE: Load Sample Document Method
+        loadSampleDocument() {
+            if (!SAMPLE_DOC_CONTENT) {
+                this.showNotification('Sample document content is not defined.', 'error');
+                return;
+            }
+
+            document.getElementById('fileInput').value = '';
+
+            this.uploadedFiles = [{ 
+                name: "Church_loans_Sample.txt", 
+                content: SAMPLE_DOC_CONTENT 
+            }];
+            this.analysisResults = null;
+
+            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('initialMessage').classList.remove('hidden');
+            document.getElementById('resultsContent').classList.add('hidden');
+            document.getElementById('downloadBtn').classList.add('hidden');
+            
+            this.updateProgress(0, `Ready to analyze sample document: Church_loans_Sample.txt`);
+            
+            // FIX: Enable chat input/button when sample is loaded
+            document.getElementById('chatInput').disabled = false;
+            document.getElementById('sendChatBtn').disabled = false;
+            
+            this.showNotification('Sample Loan Agreement loaded successfully!', 'info');
+        }
+        // END NEW CODE
+
+        // FIND AND REPLACE resetAnalysis() WITH THIS:
+
+        resetAnalysis() {
+            this.uploadedFiles = [];
+            this.analysisResults = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('downloadBtn').classList.add('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
+            document.getElementById('initialMessage').classList.remove('hidden');
+            document.getElementById('resultsContent').classList.add('hidden');
+            this.updateProgress(0, 'Ready to analyze. Upload a new document.');
+            
+            // NEW RESET LOGIC FOR CHAT MODAL
+            this.showChatToggleButton(false);
+            this.toggleChatModal(false); 
+            document.getElementById('chatInput').disabled = true;
+            document.getElementById('sendChatBtn').disabled = true;
+
+            this.showNotification('Analysis panel reset.', 'info');
+        }
+
+        downloadResults() {
+            if (!this.analysisResults) {
+                this.showNotification('No results to download.', 'warning');
+                return;
+            }
+            const blob = new Blob([JSON.stringify(this.analysisResults, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `ClauseGenie_Analysis_${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            this.showNotification('Analysis results downloaded!', 'success');
+        }
+
+        // NEW: Modal Toggle Functions
+        toggleChatModal(show) {
+            const modal = document.getElementById('chatModal');
+            const openBtn = document.getElementById('openChatBtn');
+            const shouldShow = show !== undefined ? show : modal.classList.contains('translate-x-full');
+
+            if (shouldShow) {
+                // Show modal
+                modal.classList.remove('translate-x-full');
+                modal.classList.add('translate-x-0');
+                // Hide floating button
+                openBtn.classList.add('scale-0', 'opacity-0');
+            } else {
+                // Hide modal
+                modal.classList.remove('translate-x-0');
+                modal.classList.add('translate-x-full');
+                // Show floating button (if results exist)
+                if (this.analysisResults) {
+                     openBtn.classList.remove('scale-0', 'opacity-0');
+                     openBtn.classList.add('scale-100', 'opacity-100');
+                }
+            }
+        }
+        
+        showChatToggleButton(show) {
+             const openBtn = document.getElementById('openChatBtn');
+             if (show) {
+                 openBtn.classList.remove('scale-0', 'opacity-0');
+                 openBtn.classList.add('scale-100', 'opacity-100');
+             } else {
+                 openBtn.classList.remove('scale-100', 'opacity-100');
+                 openBtn.classList.add('scale-0', 'opacity-0');
+             }
+        }
+
+        initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            this.currentTheme = savedTheme;
+            this.applyTheme(savedTheme);
+        }
+
+        applyTheme(theme) {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const controlPanel = document.getElementById('controlPanel');
+            const header = document.querySelector('header');
+            const resultsContainer = document.getElementById('analysisResultsContainer');
+
+            if (theme === 'dark') {
+                body.classList.remove('bg-gray-100', 'text-gray-900');
+                body.classList.add('bg-gray-900', 'text-gray-100');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                themeIcon.classList.replace('text-gray-600', 'text-yellow-400');
+                
+                header.classList.remove('bg-white');
+                header.classList.add('bg-gray-800');
+
+                controlPanel.classList.remove('bg-white');
+                controlPanel.classList.add('bg-gray-800');
+                
+                resultsContainer.classList.remove('bg-gray-50', 'border-gray-200');
+                resultsContainer.classList.add('bg-gray-800', 'border-gray-700');
+
+            } else {
+                body.classList.remove('bg-gray-900', 'text-gray-100');
+                body.classList.add('bg-gray-100', 'text-gray-900');
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                themeIcon.classList.replace('text-yellow-400', 'text-gray-600');
+                
+                header.classList.remove('bg-gray-800');
+                header.classList.add('bg-white');
+
+                controlPanel.classList.remove('bg-gray-800');
+                controlPanel.classList.add('bg-white');
+                
+                resultsContainer.classList.remove('bg-gray-800', 'border-gray-700');
+                resultsContainer.classList.add('bg-gray-50', 'border-gray-200');
+            }
+            localStorage.setItem('theme', theme);
+            this.currentTheme = theme;
+        }
+
+        toggleTheme() {
+            const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+            this.applyTheme(newTheme);
+        }
+    }
+
+    // Initialize the application once Firebase Auth is ready
+    window.analyzer = new LegalDocumentAnalyzer();
+    
+    // Custom utility classes used in HTML (Bootstrap replacements)
+    document.addEventListener('DOMContentLoaded', () => {
+        // Apply modal transition logic
+        const helpModal = document.getElementById('helpModal');
+        const helpModalContent = document.getElementById('helpModalContent');
+
+        // Function to show modal with animation
+        const showModal = () => {
+            helpModal.classList.remove('hidden');
+            setTimeout(() => {
+                helpModal.classList.remove('opacity-0');
+                helpModalContent.classList.remove('scale-95', 'opacity-0');
+                helpModalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        };
+
+        // Function to hide modal with animation
+        const hideModal = () => {
+            helpModalContent.classList.remove('scale-100', 'opacity-100');
+            helpModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                helpModal.classList.add('hidden');
+                helpModal.classList.add('opacity-0');
+            }, 300); // Wait for transition
+        };
+
+        // Rebind the help button to use the new logic
+        document.querySelector('button[onclick*="helpModal"]').onclick = showModal;
+
+        // Rebind the close button
+        document.querySelector('#helpModal button.absolute').onclick = hideModal;
+        
+        // Handle backdrop click
+        helpModal.onclick = (event) => {
+            if (event.target.id === 'helpModal') {
+                hideModal();
+            }
+        };
+
+        // Initial setup of button styles
+        document.querySelectorAll('.btn-format').forEach(btn => {
+            if (!btn.classList.contains('active')) {
+                btn.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+            } else {
+                 btn.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                 btn.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+            }
+            btn.classList.add('w-full', 'py-2', 'rounded-lg', 'font-semibold', 'transition-colors', 'duration-200');
+        });
+    });
+
+</script>
+
+</body>
+</html>
