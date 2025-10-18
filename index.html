@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en" data-color-scheme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Legal Document Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between py-3">
+                <a href="index.html" class="logo" style="text-decoration: none;">
+                    <i class="fas fa-balance-scale me-2"></i>
+                    <span class="logo-text">CLAUSEWISE</span>
+                </a>
+                <div class="d-flex align-items-center gap-24">
+                    <nav class="nav-menu">
+                        <a href="library.html" class="nav-link" target="_blank" rel="noopener">Library</a>
+                        <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#helpModal">Help</a>
+                    </nav>
+                    <button class="btn login-btn" id="loginBtn" type="button" aria-label="Login" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <button class="btn theme-toggle-btn" id="themeToggle" type="button" aria-label="Toggle theme">
+                        <i class="fas fa-sun theme-icon"></i>
+                        <span class="theme-text">Light</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="text-center mb-4">
+                    <h1 class="display-5 fw-bold mb-3">AI-Powered Legal Document Analysis</h1>
+                    <p class="lead">Upload legal documents and get intelligent analysis using advanced AI libraries</p>
+                    <div class="mt-3">
+                        <button class="btn btn--secondary" data-bs-toggle="modal" data-bs-target="#sampleModal">
+                            <i class="fas fa-file-alt me-2"></i>Try Sample Documents
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="card upload-card">
+                    <div class="card__body">
+                        <h3 class="card-title mb-4">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                            Upload Legal Documents
+                        </h3>
+                        
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-content">
+                                <i class="fas fa-file-upload upload-icon"></i>
+                                <h4>Drag & Drop Documents Here</h4>
+                                <p>or click to browse files</p>
+                                <div class="supported-formats">
+                                    <span class="format-badge">PDF</span>
+                                    <span class="format-badge">DOCX</span>
+                                    <span class="format-badge">Images</span>
+                                </div>
+                            </div>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc,.png,.jpg,.jpeg" class="d-none">
+                        </div>
+
+                        <div class="uploaded-files" id="uploadedFiles"></div>
+
+                        <div class="output-format-selection mt-4" id="formatSelection" style="display: none;">
+                            <h5>Select Output Format:</h5>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="format-option" data-format="clauses">
+                                        <i class="fas fa-list-alt"></i>
+                                        <h6>Clauses</h6>
+                                        <p>Organized by contract clauses</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="format-option" data-format="points">
+                                        <i class="fas fa-list-ul"></i>
+                                        <h6>Points</h6>
+                                        <p>Bullet-point summary</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="format-option" data-format="divisions">
+                                        <i class="fas fa-sitemap"></i>
+                                        <h6>Divisions</h6>
+                                        <p>Section-based organization</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="format-option" data-format="custom">
+                                        <i class="fas fa-cogs"></i>
+                                        <h6>Custom</h6>
+                                        <p>User-defined format</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <button class="btn btn--primary btn--lg" id="analyzeBtn" disabled>
+                                    <i class="fas fa-brain me-2"></i>
+                                    Start AI Analysis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section class="processing-section" id="processingSection" style="display: none;">
+                <div class="card processing-card">
+                    <div class="card__body">
+                        <h3 class="card-title mb-4">
+                            <i class="fas fa-cog fa-spin me-2"></i>
+                            Processing Documents
+                        </h3>
+                        
+                        <div class="processing-steps">
+                            <div class="step-item" id="step-upload">
+                                <div class="step-icon">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h6>Document Upload</h6>
+                                    <p>Files received and validated</p>
+                                </div>
+                                <div class="step-status">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
+
+                            <div class="step-item" id="step-extraction">
+                                <div class="step-icon">
+                                    <i class="fas fa-file-text"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h6>Text Extraction</h6>
+                                    <p>Using PyPDF2/PyMuPDF & python-docx</p>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar" id="extractionProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="step-status">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+
+                            <div class="step-item" id="step-nltk">
+                                <div class="step-icon">
+                                    <i class="fas fa-language"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h6>NLP Processing</h6>
+                                    <p>NLTK tokenization and analysis</p>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar" id="nltkProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="step-status">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+
+                            <div class="step-item" id="step-huggingface">
+                                <div class="step-icon">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h6>AI Analysis</h6>
+                                    <p>HuggingFace Transformers processing</p>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar" id="huggingfaceProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="step-status">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+
+                            <div class="step-item" id="step-tensorflow">
+                                <div class="step-icon">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h6>ML Classification</h6>
+                                    <p>TensorFlow deep learning analysis</p>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar" id="tensorflowProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="step-status">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+
+                            <div class="step-item" id="step-completion">
+                                <div class="step-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="step-content">
+                                    <h6>Analysis Complete</h6>
+                                    <p>Results formatted and ready</p>
+                                </div>
+                                <div class="step-status">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="card results-card">
+                    <div class="card__body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="card-title m-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Analysis Results
+                            </h3>
+                            <div class="results-actions">
+                                <button class="btn btn--secondary btn--sm me-2" id="downloadBtn">
+                                    <i class="fas fa-download me-1"></i>
+                                    Download Results
+                                </button>
+                                <button class="btn btn--outline btn--sm" id="newAnalysisBtn">
+                                    <i class="fas fa-plus me-1"></i>
+                                    New Analysis
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Results Navigation -->
+                        <ul class="nav nav-tabs mb-4" id="resultsNav">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#summary">General Summary</a>
+                            </li>
+                            <li class="nav-item" id="customOutputTabNav" style="display: none;">
+                                <a class="nav-link" data-bs-toggle="tab" href="#customOutput">Custom Output</a>
+                            </li>
+                        </ul>
+
+                        <!-- Results Content -->
+                        <div class="tab-content" id="resultsContent">
+                            <div class="tab-pane fade show active" id="summary">
+                                <div class="summary-stats">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="documentCount">0</div>
+                                                <div class="stat-label">Documents</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="clauseCount">0</div>
+                                                <div class="stat-label">Clauses Found</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="riskScore">0%</div>
+                                                <div class="stat-label">Risk Score</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="confidenceScore">0%</div>
+                                                <div class="stat-label">Confidence</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="summary-content" id="summaryContent"></div>
+                            </div>
+
+                            <div class="tab-pane fade" id="customOutput" style="display: none;">
+                                <div class="custom-output-content" id="customOutputContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel"><i class="fas fa-circle-question me-2"></i>How to use Clausewise</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ol class="ms-3">
+                        <li class="mb-3">
+                            <strong>Upload documents</strong><br>
+                            Click the upload area to select files or drag and drop PDFs, DOCX, or images. After upload, you will see the files listed.
+                        </li>
+                        <li class="mb-3">
+                            <strong>Choose an output format</strong><br>
+                            Pick Clauses, Points, Divisions, or select <em>Custom</em> for specialized formatting.
+                        </li>
+                        <li class="mb-3">
+                            <strong>Custom output (optional)</strong><br>
+                            If you select Custom, choose a <em>Style Template</em> (required). You can optionally add instructions elsewhere in the app. Confirm to save.
+                        </li>
+                        <li class="mb-3">
+                            <strong>Run the analysis</strong><br>
+                            Click <em>Start AI Analysis</em>. You’ll see step-by-step processing with progress bars.
+                        </li>
+                        <li class="mb-3">
+                            <strong>View results</strong><br>
+                            The <em>General Summary</em> shows an overall narrative. If you selected <em>Custom</em>, a <em>Custom Output</em> tab will appear with results formatted to your chosen template (e.g., numbered, table, document summarization, named-entity summarization).
+                        </li>
+                        <li class="mb-3">
+                            <strong>Download or start new</strong><br>
+                            Use <em>Download Results</em> to save a report, or <em>New Analysis</em> to reset.
+                        </li>
+                        <li class="mb-3">
+                            <strong>Login and Library</strong><br>
+                            Login via the user icon to persist history. The <em>Library</em> shows past summaries: last 3 for guests, all for logged-in users.
+                        </li>
+                    </ol>
+                    <div class="mt-2">
+                        <h6 class="mb-2">Tips</h6>
+                        <ul class="ms-3">
+                            <li>Use sample documents to explore features quickly.</li>
+                            <li>For Custom, choose the template that matches your goal (e.g., JSON or Table for structured exports).</li>
+                            <li>If text appears faint, toggle theme; this UI is theme-aware.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="loginEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" required placeholder="Enter your password">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn--primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </div>
+                    </form>
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <p class="mb-2">Don't have an account?</p>
+                        <button class="btn btn--outline" id="showRegisterBtn">
+                            <i class="fas fa-user-plus me-2"></i>Register
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="registerName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="registerName" required placeholder="Enter your full name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="registerEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="registerPassword" required placeholder="Enter your password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" required placeholder="Confirm your password">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">I agree to the <a href="#" onclick="showNotification('Terms of Service coming soon!', 'info')">Terms of Service</a></label>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn--primary">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </button>
+                        </div>
+                    </form>
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <p class="mb-2">Already have an account?</p>
+                        <button class="btn btn--outline" id="showLoginBtn">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sample Documents Modal -->
+    <div class="modal fade" id="sampleModal" tabindex="-1" aria-labelledby="sampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sampleModalLabel">
+                        <i class="fas fa-file-alt me-2"></i>Sample Documents
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-4">Try our AI analyzer with these sample legal documents to see how it works:</p>
+                    <div class="sample-documents">
+                        <div class="sample-doc" data-sample="contract">
+                            <i class="fas fa-file-pdf text-danger"></i>
+                            <div class="sample-info">
+                                <h6>Contract Agreement Template</h6>
+                                <p>2.4 MB PDF • 10 Legal Clauses</p>
+                                <small>Contains standard contract provisions including terms, payments, and liability clauses</small>
+                            </div>
+                        </div>
+                        <div class="sample-doc" data-sample="brief">
+                            <i class="fas fa-file-word text-primary"></i>
+                            <div class="sample-info">
+                                <h6>Legal Brief Document</h6>
+                                <p>1.8 MB DOCX • 5 Sections</p>
+                                <small>Structured legal brief with arguments, case law, and conclusions</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> These are simulated documents for demonstration purposes. Real analysis would process actual uploaded files.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn--outline" onclick="document.getElementById('fileInput').click(); bootstrap.Modal.getInstance(document.getElementById('sampleModal')).hide();">
+                        <i class="fas fa-upload me-1"></i>Upload Your Own
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Format Modal -->
+    <div class="modal fade" id="customFormatModal" tabindex="-1" aria-labelledby="customFormatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="customFormatModalLabel">
+                        <i class="fas fa-cogs me-2"></i>Custom Output Format
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    
+                    <div class="mb-3">
+                        <label for="styleTemplate" class="form-label">Style Template (Required):</label>
+                        <select class="form-control" id="styleTemplate" required aria-required="true">
+                            <option value="" disabled selected>Select a template...</option>
+                            <option value="numbered">Numbered List</option>
+                            <option value="bullet">Bullet Points</option>
+                            <option value="markdown">Markdown Format</option>
+                            <option value="json">JSON Structure</option>
+                            <option value="table">Table Format</option>
+                            <option value="document-summarization">Document summarization</option>
+                            <option value="document-simplification">Document simplification</option>
+                            <option value="named-entity-summarization">Named entity summarization</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tips:</strong> 
+                        <ul class="mb-0 mt-2">
+                            <li>Be specific about structure (numbered, bulleted, headings)</li>
+                            <li>Mention desired content (summaries, risk levels, key terms)</li>
+                            <li>Specify any special formatting requirements</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary" data-bs-dismiss="modal" id="cancelCustomFormat">Cancel</button>
+                    <button type="button" class="btn btn--primary" id="confirmCustomFormat">
+                        <i class="fas fa-check me-1"></i>Confirm Format
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none" style="background: rgba(0,0,0,0.5); z-index: 9999;">
+        <div class="d-flex align-items-center justify-content-center h-100">
+            <div class="text-center text-white">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Processing your documents...</h5>
+                <p>Please wait while we analyze your legal documents</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+
+    <!-- Initialization Script -->
+    <script>
+        // Ensure Bootstrap is loaded before initializing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some debug logging
+            console.log('DOM Content Loaded');
+            console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+            
+            // Initialize tooltips if any
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // Global notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px; max-width: 400px;';
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 150);
+                }
+            }, 4000);
+        }
+
+        // Show welcome notification
+        setTimeout(() => {
+            showNotification('Welcome! Click "Try Sample Documents" to get started, or upload your own files.', 'info');
+        }, 1000);
+
+        // Login System Functionality
+        let isLoggedIn = false;
+        let currentUser = null;
+
+        // Check if user is already logged in (from localStorage)
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                isLoggedIn = true;
+                updateLoginButton();
+            }
+        }
+
+        // Update login button appearance based on login status
+        function updateLoginButton() {
+            const loginBtn = document.getElementById('loginBtn');
+            if (isLoggedIn && currentUser) {
+                loginBtn.innerHTML = '<i class="fas fa-user"></i>';
+                loginBtn.setAttribute('data-bs-toggle', '');
+                loginBtn.setAttribute('data-bs-target', '');
+                loginBtn.onclick = showUserMenu;
+                loginBtn.title = `Logged in as ${currentUser.name}`;
+            } else {
+                loginBtn.innerHTML = '<i class="fas fa-user-circle"></i>';
+                loginBtn.setAttribute('data-bs-toggle', 'modal');
+                loginBtn.setAttribute('data-bs-target', '#loginModal');
+                loginBtn.onclick = null;
+                loginBtn.title = 'Login';
+            }
+        }
+
+        // Show user menu when logged in
+        function showUserMenu() {
+            const menu = document.createElement('div');
+            menu.className = 'dropdown-menu show position-absolute';
+            menu.style.cssText = 'top: 100%; right: 0; z-index: 1000; min-width: 200px;';
+            menu.innerHTML = `
+                <div class="dropdown-header">
+                    <i class="fas fa-user me-2"></i>${currentUser.name}
+                </div>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" onclick="showNotification('Profile feature coming soon!', 'info')">
+                    <i class="fas fa-user-edit me-2"></i>Profile
+                </a>
+                <a class="dropdown-item" href="#" onclick="showNotification('Settings feature coming soon!', 'info')">
+                    <i class="fas fa-cog me-2"></i>Settings
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                </a>
+            `;
+            
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.parentNode.style.position = 'relative';
+            loginBtn.parentNode.appendChild(menu);
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function closeMenu(e) {
+                if (!loginBtn.contains(e.target) && !menu.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }
+
+        // Logout function
+        function logout() {
+            isLoggedIn = false;
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            updateLoginButton();
+            showNotification('Successfully logged out!', 'success');
+        }
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            // Simulate login validation (in real app, this would be an API call)
+            if (email && password) {
+                // Simulate successful login
+                currentUser = {
+                    name: email.split('@')[0],
+                    email: email,
+                    id: Date.now()
+                };
+                isLoggedIn = true;
+                
+                if (rememberMe) {
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+                
+                updateLoginButton();
+                bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                showNotification(`Welcome back, ${currentUser.name}!`, 'success');
+                
+                // Clear form
+                document.getElementById('loginForm').reset();
+            } else {
+                showNotification('Please enter valid email and password.', 'danger');
+            }
+        });
+
+        // Register form submission
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+
+            // Validation
+            if (!name || !email || !password || !confirmPassword) {
+                showNotification('Please fill in all fields.', 'danger');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match.', 'danger');
+                return;
+            }
+
+            if (!agreeTerms) {
+                showNotification('Please agree to the Terms of Service.', 'danger');
+                return;
+            }
+
+            // Simulate successful registration
+            currentUser = {
+                name: name,
+                email: email,
+                id: Date.now()
+            };
+            isLoggedIn = true;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            updateLoginButton();
+            bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+            showNotification(`Welcome, ${name}! Your account has been created successfully.`, 'success');
+            
+            // Clear form
+            document.getElementById('registerForm').reset();
+        });
+
+        // Switch between login and register modals
+        document.getElementById('showRegisterBtn').addEventListener('click', function() {
+            bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+            setTimeout(() => {
+                const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+                registerModal.show();
+            }, 300);
+        });
+
+        document.getElementById('showLoginBtn').addEventListener('click', function() {
+            bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+            setTimeout(() => {
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            }, 300);
+        });
+
+        // Initialize login status
+        checkLoginStatus();
+    </script>
+</body>
+</html>
