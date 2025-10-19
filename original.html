@@ -10,6 +10,15 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
+    /* Set the background image using the correct file name */
+    background-image: url('v602-nunoon-45-rippednotes.jpg'); 
+    background-size: cover; /* Ensures the image covers the entire viewport */
+    background-attachment: fixed; /* Keeps the background static while content scrolls */
+    background-position: center center;
+    position: relative; /* Needed for the ::before pseudo-element */
+    z-index: 1; /* Ensure body content is layered correctly */
+}
+        body {
             font-family: 'Inter', sans-serif;
             transition: background-color 0.3s, color 0.3s;
         }
