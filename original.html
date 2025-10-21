@@ -225,9 +225,8 @@ SECTION 6. AFFIRMATIVE COVENANTS
 SECTION 8. EVENTS OF DEFAULT
 8.1 Events of Default. The following shall constitute an Event of Default hereunder: (c) If a final money judgment in excess of $25,000 shall be rendered against the Trust and such judgment shall not be discharged or stayed within sixty (60) days.
 `;
-    // END NEW CODE
 
-    // ---------- AI Legal Document Analyzer CLASS (Refactored from app.js) ----------
+
     class LegalDocumentAnalyzer {
         constructor() {
             this.uploadedFiles = [];
@@ -236,12 +235,12 @@ SECTION 8. EVENTS OF DEFAULT
             this.currentTheme = 'light';
             
             // 🚀 GEMINI API KEY INSERTED HERE 🚀
-            const apiKey = "AIzaSyCdR0k2aTtwT-4nG4mvMFZGr1icz90RonQ"; 
-            this.apiURL = this.apiURL ='https://www.google.com/search?q=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent%3Fkey%3D${apiKey}';
+            const apiKey = "AIzaSyDdUieZ7sx9bWD_v6iUd71HYoTQ49dYYuI"; // <-- Your API Key
+            // FIX APPLIED HERE: Using the current GA model 'gemini-2.5-flash'
+            this.apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`; 
 
             this.init();
         }
-
         async init() {
             this.initializeTheme();
             await this.initFirebase(); // Initialize Firebase first
